@@ -4,6 +4,9 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
+//Отправка сообщение между клиентами в методе broadcastMesage.
+//Например если сообщение начинается с @"Имя"
+
 public class ClientManager implements Runnable{
     private final Socket socket;
     private BufferedReader bufferedReader;
@@ -54,7 +57,10 @@ public class ClientManager implements Runnable{
         while (socket.isConnected()){
             try {
                 messageFromClient = bufferedReader.readLine();
-                broadcastMessage(messageFromClient);
+                if(messageFromClient == null){
+                    broadcastMessage(messageFromClient);
+                    break;
+                }
             }catch (IOException e){
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -66,6 +72,7 @@ public class ClientManager implements Runnable{
         for(ClientManager client: clients){
             try {
                 if(!client.name.equals(name)){
+                    //Распарсить и отправить сообщение конкретному клиенту
                     client.bufferedWriter.write(message);
                     client.bufferedWriter.newLine();
                     client.bufferedWriter.flush();
