@@ -57,10 +57,13 @@ public class ClientManager implements Runnable{
         while (socket.isConnected()){
             try {
                 messageFromClient = bufferedReader.readLine();
-                if(messageFromClient == null){
+                broadcastMessage(messageFromClient);
+                break;
+                /*
+                if(messageFromClient != null){
                     broadcastMessage(messageFromClient);
                     break;
-                }
+                }*/
             }catch (IOException e){
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -69,10 +72,52 @@ public class ClientManager implements Runnable{
     }
 
     private void broadcastMessage(String message){
+
+        String[] separatedMessage = message.split(": ");
+        String[] words;
+
+
+        Character charecter = separatedMessage[1].charAt(0);
+
+        if(charecter.equals('@')){
+            words = message.split(" ");
+
+            String nameToMessage = words[1].replaceFirst("@", "");
+            String messageToClient = words[0];
+
+            for (int i = 2; i < words.length; i++) {
+                messageToClient += words[i] + " ";
+            }
+
+            for(ClientManager client: clients){
+                try {
+                    if(!client.name.equals(name) && nameToMessage.equals(client.name)){
+                        client.bufferedWriter.write(messageToClient);
+                        client.bufferedWriter.newLine();
+                        client.bufferedWriter.flush();
+                    }
+                }catch (IOException e){
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+            }
+        }else {
+            for(ClientManager client: clients){
+                try {
+                    if(!client.name.equals(name)){
+                        client.bufferedWriter.write(message);
+                        client.bufferedWriter.newLine();
+                        client.bufferedWriter.flush();
+                    }
+                }catch (IOException e){
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+            }
+        }
+
+        /*
         for(ClientManager client: clients){
             try {
                 if(!client.name.equals(name)){
-                    //Распарсить и отправить сообщение конкретному клиенту
                     client.bufferedWriter.write(message);
                     client.bufferedWriter.newLine();
                     client.bufferedWriter.flush();
@@ -81,5 +126,6 @@ public class ClientManager implements Runnable{
                 closeEverything(socket, bufferedReader, bufferedWriter);
             }
         }
+        */
     }
 }
